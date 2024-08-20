@@ -7,6 +7,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Maximize build space
+      uses: easimon/maximize-build-space@master
+
     - name: Clone repository
       run: |
         git clone --depth 1 -b v9.0.0-preview.7.24405.7 https://github.com/dotnet/dotnet
