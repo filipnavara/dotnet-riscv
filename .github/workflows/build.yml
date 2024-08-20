@@ -7,10 +7,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Maximize build space
-      uses: easimon/maximize-build-space@master
-      with:
-        root-reserve-mb: '4096'
+    #- name: Maximize build space
+    #  uses: easimon/maximize-build-space@master
+    #  with:
+    #    root-reserve-mb: '8192'
 
     - name: Clone repository
       run: |
