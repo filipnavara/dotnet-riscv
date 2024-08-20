@@ -8,7 +8,6 @@ jobs:
     container:
       image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-cross-riscv64-net9.0
       env:
-        VERSION: v9.0.0-preview.7.24405.7
         OUTPUTDIR: ${{ github.workspace }}/output
         ROOTFS_DIR: /crossrootfs/riscv64
       volumes:
@@ -17,7 +16,7 @@ jobs:
     steps:
     - name: Clone repository
       run: |
-        git clone --depth 1 -b ${VERSION} https://github.com/dotnet/dotnet
+        git clone --depth 1 -b v9.0.0-preview.7.24405.7 https://github.com/dotnet/dotnet
 
     - name: Build runtime
       run: |
@@ -25,7 +24,7 @@ jobs:
 
         cd dotnet
         ./prep-source-build.sh
-        ./build.sh -sb --clean-while-building
+        ./build.sh -sb --clean-while-building /p:TargetOS=linux /p:TargetArchitecture=riscv64
         # copy output
         cp artifacts/assets/Release/* ${OUTPUTDIR}
 
