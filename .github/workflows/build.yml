@@ -1,0 +1,36 @@
+name: Build .NET SDK
+
+on: [workflow_dispatch]
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-cross-riscv64-net9.0
+      env:
+        VERSION: v9.0.0-preview.7.24405.7
+        OUTPUTDIR: ${{ github.workspace }}/output
+        ROOTFS_DIR: /crossrootfs/riscv64
+      volumes:
+        - ${{ github.workspace }}/output:${{ github.workspace }}/output
+
+    steps:
+    - name: Clone repository
+      run: |
+        git clone --depth 1 -b ${VERSION} https://github.com/dotnet/dotnet
+
+    - name: Build runtime
+      run: |
+        mkdir -p ${OUTPUTDIR}
+
+        cd dotnet
+        ./prep-source-build.sh
+        ./build.sh -sb --clean-while-building
+        # copy output
+        cp artifacts/assets/Release/* ${OUTPUTDIR}
+
+    - name: Upload .NET
+      uses: actions/upload-artifact@v4
+      with:
+        name: dotnet-sdk-linux-riscv64
+        path: "${{ github.workspace }}/output/*"
