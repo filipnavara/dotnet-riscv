@@ -9,6 +9,8 @@ jobs:
     steps:
     - name: Maximize build space
       uses: easimon/maximize-build-space@master
+      with:
+        root-reserve-mb: '4096'
 
     - name: Clone repository
       run: |
