@@ -12,10 +12,13 @@ jobs:
         docker image pull mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-cross-riscv64-net9.0
         
     - name: Maximize build space
-      uses: easimon/maximize-build-space@master
+      uses: AdityaGarg8/remove-unwanted-software@v4.1
       with:
-        temp-reserve-mb: '4096'
-        root-reserve-mb: '4096'
+        remove-dotnet: 'true'
+        remove-android: 'true'
+        remove-haskell: 'true'
+        remove-codeql: 'true'
+        remove-cached-tools: 'true'        
 
     - name: Clone repository
       run: |
