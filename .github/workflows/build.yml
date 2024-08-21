@@ -7,10 +7,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    #- name: Maximize build space
-    #  uses: easimon/maximize-build-space@master
-    #  with:
-    #    root-reserve-mb: '8192'
+    - name: Get Docker image
+      run: |
+        docker image pull mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-cross-riscv64-net9.0
+        
+    - name: Maximize build space
+      uses: easimon/maximize-build-space@master
 
     - name: Clone repository
       run: |
@@ -26,4 +28,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: dotnet-sdk-linux-riscv64
-        path: "${{ github.workspace }}/dotnet/artifacts/assets/Release/*"
+        path: "${{ github.workspace }}/dotnet/artifacts/assets/Release/dotnet-sdk-*"
