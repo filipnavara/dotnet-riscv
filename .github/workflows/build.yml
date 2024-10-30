@@ -22,18 +22,19 @@ jobs:
 
     - name: Clone repository
       run: |
-        git clone --depth 1 -b v9.0.0-rc.2.24473.5 https://github.com/dotnet/dotnet
+        git clone --depth 1 -b v8.0.10 https://github.com/dotnet/dotnet
 
-    - name: Apply patches
-      run: |
-        wget https://patch-diff.githubusercontent.com/raw/dotnet/sdk/pull/42158.diff
-        patch -d dotnet/src/sdk -p1 -i ${{ github.workspace }}/42158.diff
+    # Not needed for building .NET 8
+    # - name: Apply patches
+    #   run: |
+    #     wget https://patch-diff.githubusercontent.com/raw/dotnet/sdk/pull/42158.diff
+    #     patch -d dotnet/src/sdk -p1 -i ${{ github.workspace }}/42158.diff
 
     - name: Build
       run: |
         docker run --platform linux/amd64 --rm -v${{ github.workspace }}/dotnet:/dotnet -e ROOTFS_DIR=/crossrootfs/riscv64 -e DISABLE_CROSSGEN=1 \
           mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-cross-riscv64-net9.0 \
-          sh -c 'cd /dotnet && ./prep-source-build.sh && ./build.sh -sb --clean-while-building /p:TargetOS=linux /p:TargetArchitecture=riscv64 /p:Crossbuild=true'
+          sh -c 'cd /dotnet && ./build.sh --clean-while-building --online /p:TargetOS=linux /p:TargetArchitecture=riscv64 /p:Crossbuild=true'
 
     - name: Upload .NET
       uses: actions/upload-artifact@v4
