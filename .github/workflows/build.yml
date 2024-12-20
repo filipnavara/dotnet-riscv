@@ -22,7 +22,7 @@ jobs:
 
     - name: Clone repository
       run: |
-        git clone --depth 1 -b v9.0.0-rc.2.24473.5 https://github.com/dotnet/dotnet
+        git clone --depth 1 -b v9.0.101 https://github.com/dotnet/dotnet
 
     - name: Apply patches
       run: |
