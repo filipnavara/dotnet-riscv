@@ -1,6 +1,12 @@
 name: Build .NET SDK
 
-on: [workflow_dispatch]
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'dotnet VMR branch name'
+        required: true
+        type: string
 
 jobs:
   run:
@@ -22,7 +28,7 @@ jobs:
 
     - name: Clone repository
       run: |
-        git clone --depth 1 -b v9.0.101 https://github.com/dotnet/dotnet
+        git clone --depth 1 -b ${{ inputs.branch }} https://github.com/dotnet/dotnet
 
     - name: Apply patches
       run: |
