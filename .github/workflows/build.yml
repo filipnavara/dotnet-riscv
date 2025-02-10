@@ -30,10 +30,10 @@ jobs:
       run: |
         git clone --depth 1 -b ${{ inputs.branch }} https://github.com/dotnet/dotnet
 
-    - name: Apply patches
-      run: |
-        wget https://patch-diff.githubusercontent.com/raw/dotnet/sdk/pull/42158.diff
-        patch -d dotnet/src/sdk -p1 -i ${{ github.workspace }}/42158.diff
+    #- name: Apply patches
+    #  run: |
+    #    wget https://patch-diff.githubusercontent.com/raw/dotnet/sdk/pull/42158.diff
+    #    patch -d dotnet/src/sdk -p1 -i ${{ github.workspace }}/42158.diff
 
     - name: Build
       run: |
