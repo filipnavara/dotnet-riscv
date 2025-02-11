@@ -30,16 +30,16 @@ jobs:
       run: |
         git clone --depth 1 -b ${{ inputs.branch }} https://github.com/dotnet/dotnet
 
-    #- name: Apply patches
-    #  run: |
-    #    wget https://patch-diff.githubusercontent.com/raw/dotnet/sdk/pull/42158.diff
-    #    patch -d dotnet/src/sdk -p1 -i ${{ github.workspace }}/42158.diff
+    - name: Apply patches
+      run: |
+        wget https://gist.githubusercontent.com/filipnavara/9a94666778b095b6518b946ce6bce756/raw/e5547f8e47273b1649ec2aecb96c805ddf360bef/TwoStageRuntimeBuild.diff
+        patch -d dotnet -p1 -i ${{ github.workspace }}/TwoStageRuntimeBuild.diff
 
     - name: Build
       run: |
         docker run --platform linux/amd64 --rm -v${{ github.workspace }}/dotnet:/dotnet -e ROOTFS_DIR=/crossrootfs/riscv64 -e DISABLE_CROSSGEN=1 \
           mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-cross-riscv64-net9.0 \
-          sh -c 'cd /dotnet && ./build.sh --clean-while-building /p:TargetOS=linux /p:TargetArchitecture=riscv64 /p:Crossbuild=true'
+          sh -c 'cd /dotnet && ./prep-source-build.sh && ./build.sh --clean-while-building -sb /p:TargetOS=linux /p:TargetArchitecture=riscv64 /p:Crossbuild=true /p:TwoStageRuntimeBuild=true'
 
     - name: Upload .NET
       uses: actions/upload-artifact@v4
