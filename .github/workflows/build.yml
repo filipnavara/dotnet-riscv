@@ -34,6 +34,8 @@ jobs:
       run: |
         wget https://gist.githubusercontent.com/filipnavara/9a94666778b095b6518b946ce6bce756/raw/e5547f8e47273b1649ec2aecb96c805ddf360bef/TwoStageRuntimeBuild.diff
         patch -d dotnet -p4 -i ${{ github.workspace }}/TwoStageRuntimeBuild.diff
+        wget https://gist.githubusercontent.com/filipnavara/9a94666778b095b6518b946ce6bce756/raw/bf99deb5ee43c267648f2ddb5c7dfeac408fc8b2/Debug.diff
+        patch -d dotnet -p1 -i ${{ github.workspace }}/Debug.diff
 
     - name: Build
       run: |
