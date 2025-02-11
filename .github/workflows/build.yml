@@ -33,7 +33,7 @@ jobs:
     - name: Apply patches
       run: |
         wget https://patch-diff.githubusercontent.com/raw/dotnet/sdk/pull/46720.diff
-        patch -d dotnet/src/sdk -p1 -i ${{ github.workspace }}/46720.diff
+        patch -d dotnet -p4 -i ${{ github.workspace }}/46720.diff
         wget https://patch-diff.githubusercontent.com/raw/dotnet/runtime/pull/112414.diff
         patch -d dotnet/src/runtime -p1 -i ${{ github.workspace }}/112414.diff
 
