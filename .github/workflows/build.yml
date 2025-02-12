@@ -31,7 +31,7 @@ jobs:
       run: |
         docker run --platform linux/amd64 --rm -v${{ github.workspace }}/dotnet:/dotnet -e ROOTFS_DIR=/crossrootfs/arm64 -e DISABLE_CROSSGEN=1 \
           mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net10.0-cross-arm64 \
-          sh -c 'cd /dotnet && ./prep-source-build.sh && ./build.sh -sb /p:TargetOS=linux /p:TargetArchitecture=arm64 /p:Crossbuild=true'
+          sh -c 'cd /dotnet && ./prep-source-build.sh && ./build.sh --two-stage-runtime-build -sb /p:TargetOS=linux /p:TargetArchitecture=arm64 /p:Crossbuild=true'
 
     - name: Upload .NET
       uses: actions/upload-artifact@v4
