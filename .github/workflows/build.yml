@@ -13,10 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Get Docker image
-      run: |
-        docker image pull mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-cross-riscv64-net9.0
-        
+
     - name: Maximize build space
       uses: AdityaGarg8/remove-unwanted-software@v4.1
       with:
@@ -30,16 +27,11 @@ jobs:
       run: |
         git clone --depth 1 -b ${{ inputs.branch }} https://github.com/dotnet/dotnet
 
-    - name: Apply patches
-      run: |
-        wget https://patch-diff.githubusercontent.com/raw/dotnet/sdk/pull/42158.diff
-        patch -d dotnet/src/sdk -p1 -i ${{ github.workspace }}/42158.diff
-
     - name: Build
       run: |
-        docker run --platform linux/amd64 --rm -v${{ github.workspace }}/dotnet:/dotnet -e ROOTFS_DIR=/crossrootfs/riscv64 -e DISABLE_CROSSGEN=1 \
-          mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-cross-riscv64-net9.0 \
-          sh -c 'cd /dotnet && ./prep-source-build.sh && ./build.sh -sb --clean-while-building /p:TargetOS=linux /p:TargetArchitecture=riscv64 /p:Crossbuild=true'
+        docker run --platform linux/amd64 --rm -v${{ github.workspace }}/dotnet:/dotnet -e ROOTFS_DIR=/crossrootfs/arm64 -e DISABLE_CROSSGEN=1 \
+          mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-cross-arm64-net10.0 \
+          sh -c 'cd /dotnet && ./prep-source-build.sh && ./build.sh -sb /p:TargetOS=linux /p:TargetArchitecture=arm64 /p:Crossbuild=true'
 
     - name: Upload .NET
       uses: actions/upload-artifact@v4
