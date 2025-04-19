@@ -49,5 +49,4 @@ jobs:
         name: dotnet-sdk-linux-riscv64
         path: |
           ${{ github.workspace }}/dotnet/artifacts/assets/Release/dotnet-sdk-*
-          ${{ github.workspace }}/dotnet/artifacts/assets/Release/Runtime/**/dotnet-crossgen2-*-linux-riscv64.tar.gz
-
+          ${{ github.workspace }}/dotnet/artifacts/packages/Release/Shipping/runtime/Microsoft.NETCore.App.Crossgen2.linux-riscv64.*.nupkg
