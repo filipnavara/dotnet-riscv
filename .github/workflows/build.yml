@@ -31,7 +31,11 @@ jobs:
     - name: Apply patches
       run: |
         curl -sSL https://github.com/dotnet/runtime/pull/114285.diff | patch -d dotnet/src/runtime -p1 -i -
-        curl -sSL https://github.com/dotnet/runtime/compare/main...am11:runtime:patch-31.patch |
+        # curl -sSL https://github.com/dotnet/runtime/compare/main...am11:runtime:patch-31.patch |
+        #  patch -d dotnet/src/runtime -p1 -i -
+        curl -sSL https://github.com/am11/runtime/commit/3486609018239f54f8248b9c3b417c2d53abc8c0.diff |
+          patch -d dotnet/src/runtime -p1 -i -
+        curl -sSL https://github.com/am11/runtime/commit/ea2689005465f60eb672778c31fd13ccced1a363.diff |
           patch -d dotnet/src/runtime -p1 -i -
 
     - name: Build
