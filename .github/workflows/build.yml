@@ -7,16 +7,14 @@ on:
         description: 'dotnet VMR branch name'
         required: true
         type: string
+        default: main
 
 jobs:
   run:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Get Docker image
-      run: |
-        docker image pull mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-cross-riscv64-net9.0
-        
+
     - name: Maximize build space
       uses: AdityaGarg8/remove-unwanted-software@v4.1
       with:
@@ -30,20 +28,20 @@ jobs:
       run: |
         git clone --depth 1 -b ${{ inputs.branch }} https://github.com/dotnet/dotnet
 
-    - name: Apply patches
-      if: false
-      run: |
-        wget https://patch-diff.githubusercontent.com/raw/dotnet/sdk/pull/42158.diff
-        patch -d dotnet/src/sdk -p1 -i ${{ github.workspace }}/42158.diff
-
     - name: Build
       run: |
-        docker run --platform linux/amd64 --rm -v${{ github.workspace }}/dotnet:/dotnet -e ROOTFS_DIR=/crossrootfs/riscv64 -e DISABLE_CROSSGEN=1 \
-          mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-cross-riscv64-net9.0 \
-          sh -c 'cd /dotnet && ./prep-source-build.sh && ./build.sh -sb --clean-while-building /p:TargetOS=linux /p:TargetArchitecture=riscv64 /p:Crossbuild=true /p:DisableDevBuildAsDefaultForSourceOnly=true'
+        docker run --platform linux/amd64 --rm -v${{ github.workspace }}/dotnet:/dotnet -e ROOTFS_DIR=/crossrootfs/riscv64 \
+          mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net10.0-cross-riscv64 \
+          sh -c 'cd /dotnet && ./prep-source-build.sh && ./build.sh --clean-while-building -sb --os linux --arch riscv64 -p:SkipUsingCrossgen=true -p:DisableDevBuildAsDefaultForSourceOnly=true'
+
+    - name: List assets directory
+      run: |
+        find "${{ github.workspace }}/dotnet/artifacts"
 
     - name: Upload .NET
       uses: actions/upload-artifact@v4
       with:
         name: dotnet-sdk-linux-riscv64
-        path: "${{ github.workspace }}/dotnet/artifacts/assets/Release/dotnet-sdk-*"
+        path: |
+          ${{ github.workspace }}/dotnet/artifacts/assets/Release/Sdk/*/dotnet-sdk-*
+          ${{ github.workspace }}/dotnet/artifacts/packages/Release/Shipping/runtime/Microsoft.NETCore.App.Crossgen2.linux-riscv64.*.nupkg
