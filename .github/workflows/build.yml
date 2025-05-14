@@ -34,7 +34,7 @@ jobs:
           mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net10.0-cross-riscv64 \
           sh -c '
             ./prep-source-build.sh &&
-            ./build.sh --clean-while-building -sb --os linux --arch riscv64 -p:SkipUsingCrossgen=true -p:DisableDevBuildAsDefaultForSourceOnly=true
+            ./build.sh --clean-while-building -sb --os linux --arch riscv64 -p:DisableDevBuildAsDefaultForSourceOnly=true
           '
 
     - name: List assets directory
