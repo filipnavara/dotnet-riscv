@@ -13,6 +13,9 @@ on:
         required: true
         type: string
         default: main
+      release:
+        description: 'publish release'
+        type: boolean
 
 jobs:
   run:
@@ -27,7 +30,7 @@ jobs:
         remove-android: 'true'
         remove-haskell: 'true'
         remove-codeql: 'true'
-        remove-cached-tools: 'true'        
+        remove-cached-tools: 'true'
 
     - name: Clone repository
       run: |
@@ -37,7 +40,7 @@ jobs:
       run: |
         docker run --platform linux/amd64 --rm -v${{ github.workspace }}/dotnet:/dotnet -w /dotnet -e ROOTFS_DIR=/crossrootfs/riscv64 \
           mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net10.0-cross-riscv64 \
-            ./build.sh --clean-while-building --prep -sb --os linux --arch riscv64
+            ./build.sh --clean-while-building --prep -sb --os linux --arch riscv64 -p:OfficialBuildId=$(date +%Y%m%d).99
 
     - name: List assets directory
       run: |
@@ -48,5 +51,33 @@ jobs:
       with:
         name: dotnet-sdk-linux-riscv64
         path: |
-          ${{ github.workspace }}/dotnet/artifacts/assets/Release/Sdk/*/dotnet-sdk-*
+          ${{ github.workspace }}/dotnet/artifacts/assets/Release/Sdk/*/dotnet-sdk-*.tar.gz
           ${{ github.workspace }}/dotnet/artifacts/packages/Release/Shipping/runtime/Microsoft.NETCore.App.Crossgen2.linux-riscv64.*.nupkg
+
+    - name: Make release
+      if: ${{ inputs.release }}
+      run: |
+        sudo apt install -y hub
+
+        # hub(1) requires release to be created inside a git repo
+        git clone https://${{ secrets.CLONE_TOKEN }}:x-oauth-basic@github.com/${{ github.repository }}.git repo
+        cd repo
+
+        sdk_path=$(find ${{ github.workspace }}/dotnet/artifacts/assets/Release/Sdk -name 'dotnet-sdk-*.tar.gz' | head -n1)
+        sdk_filename=$(basename "$sdk_path")
+
+        # Extract version: strip prefix/suffix to get e.g. "10.0.100-preview.5.25277.114"
+        sdk_version=$(echo "$sdk_filename" | sed -E 's/dotnet-sdk-([^-]+(-[^-]+)*)-linux-.+\.tar\.gz/\1/')
+
+        artifacts=" -a $sdk_path"
+        artifacts+=" -a $(find ${{ github.workspace }}/dotnet/artifacts/packages/Release/Shipping/runtime -name 'Microsoft.NETCore.App.Crossgen2.linux-riscv64.*.nupkg' ! -name '*symbols.nupkg' | head -n1)"
+
+        tag_name="$sdk_version"
+
+        echo "tag_name: $tag_name"
+        echo "artifacts: $artifacts"
+
+        # docs: https://hub.github.com/hub-release.1.html
+        hub release create $artifacts --prerelease -m "$tag_name" "$tag_name"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
