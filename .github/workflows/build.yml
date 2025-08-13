@@ -70,8 +70,6 @@ jobs:
         sdk_version=$(echo "$sdk_filename" | sed -E 's/dotnet-sdk-([^-]+(-[^-]+)*)-linux-.+\.tar\.gz/\1/')
 
         artifacts=" -a $sdk_path"
-        artifacts+=" -a $(find ${{ github.workspace }}/dotnet/artifacts/packages/Release/Shipping/runtime -name 'Microsoft.NETCore.App.Crossgen2.linux-riscv64.*.nupkg' ! -name '*symbols.nupkg' | head -n1)"
-
         tag_name="$sdk_version"
 
         echo "tag_name: $tag_name"
