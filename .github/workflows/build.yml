@@ -18,7 +18,16 @@ on:
         type: boolean
 
 jobs:
-  run:
+  build:
+    strategy:
+      matrix:
+        include:
+          - name: linux
+            libc: glibc
+            docker_tag: azurelinux-3.0-net10.0-cross-riscv64
+          - name: linux-musl
+            libc: musl
+            docker_tag: azurelinux-3.0-net10.0-cross-riscv64-musl
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -36,11 +45,17 @@ jobs:
       run: |
         git clone --single-branch --depth 1 -b ${{ inputs.branch }} https://github.com/${{ inputs.fork }}/dotnet
 
+    - name: Apply patches
+      run: |
+        # needed for .NET 10 linux-musl-riscv64, remove it once we move on from .NET 10
+        curl -sSL https://github.com/am11/runtime/commit/fa6e00abe9be4a451d81a29309c933435db8fe40.patch |\
+          git -C dotnet/ apply -v --directory=src/runtime || true
+
     - name: Build
       run: |
         docker run --platform linux/amd64 --rm -v${{ github.workspace }}/dotnet:/dotnet -w /dotnet -e ROOTFS_DIR=/crossrootfs/riscv64 \
-          mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net10.0-cross-riscv64 \
-            ./build.sh --clean-while-building --prep -sb --os linux --arch riscv64 -p:OfficialBuildId=$(date +%Y%m%d).99
+          mcr.microsoft.com/dotnet-buildtools/prereqs:${{ matrix.docker_tag }} \
+            ./build.sh --clean-while-building --prep -sb --os ${{ matrix.name }} --rid ${{ matrix.name }}-riscv64 --arch riscv64 -p:OfficialBuildId=$(date +%Y%m%d).99
 
     - name: List assets directory
       run: |
@@ -49,12 +64,23 @@ jobs:
     - name: Upload .NET
       uses: actions/upload-artifact@v4
       with:
-        name: dotnet-sdk-linux-riscv64
+        name: dotnet-sdk-${{ matrix.name }}
         path: |
           ${{ github.workspace }}/dotnet/artifacts/assets/Release/Sdk/*/dotnet-sdk-*.tar.gz
 
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    if: ${{ inputs.release }}
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
     - name: Make release
-      if: ${{ inputs.release }}
       run: |
         sudo apt install -y hub
 
@@ -62,14 +88,15 @@ jobs:
         git clone https://${{ secrets.CLONE_TOKEN }}:x-oauth-basic@github.com/${{ github.repository }}.git repo
         cd repo
 
-        sdk_path=$(find ${{ github.workspace }}/dotnet/artifacts/assets/Release/Sdk -name 'dotnet-sdk-*.tar.gz' | head -n1)
-        sdk_filename=$(basename "$sdk_path")
-
-        # Extract version: strip prefix/suffix to get e.g. "10.0.100-preview.5.25277.114"
-        sdk_version=$(echo "$sdk_filename" | sed -E 's/dotnet-sdk-([^-]+(-[^-]+)*)-linux-.+\.tar\.gz/\1/')
-
-        artifacts=" -a $sdk_path"
-        tag_name="$sdk_version"
+        sdk_paths=$(find ${{ github.workspace }}/artifacts -name 'dotnet-sdk-*.tar.gz')
+        artifacts=""
+        for sdk_path in $sdk_paths; do
+          sdk_filename=$(basename "$sdk_path")
+          # Extract version: strip prefix/suffix to get e.g. "10.0.100-preview.5.25277.114"
+          sdk_version=$(echo "$sdk_filename" | sed -E 's/dotnet-sdk-([^-]+(-[^-]+)*)-linux-.+\.tar\.gz/\1/')
+          artifacts="$artifacts -a $sdk_path"
+          tag_name="$sdk_version"
+        done
 
         echo "tag_name: $tag_name"
         echo "artifacts: $artifacts"
