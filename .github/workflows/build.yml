@@ -13,6 +13,15 @@ on:
         required: true
         type: string
         default: main
+      branding:
+        description: 'SDK branding'
+        required: true
+        type: choice
+        options:
+          - unstable
+          - preview
+          - release
+        default: preview
       release:
         description: 'publish release'
         type: boolean
@@ -56,7 +65,7 @@ jobs:
         docker run --platform linux/amd64 --rm -v${{ github.workspace }}/dotnet:/dotnet -w /dotnet -e ROOTFS_DIR=/crossrootfs/riscv64 \
           mcr.microsoft.com/dotnet-buildtools/prereqs:${{ matrix.docker_tag }} \
             ./build.sh --clean-while-building --prep -sb --os ${{ matrix.name }} --rid ${{ matrix.name }}-riscv64 \
-              --arch riscv64 -p:OfficialBuildId=$(date +%Y%m%d).99
+              --arch riscv64 --branding ${{ inputs.branding }} -p:OfficialBuildId=$(date +%Y%m%d).99
 
     - name: List assets directory
       run: |
