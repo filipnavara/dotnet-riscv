@@ -67,6 +67,10 @@ jobs:
         # needed for .NET 10 linux-musl-riscv64, remove it once we move on from .NET 10
         curl -sSL https://github.com/am11/runtime/commit/fa6e00abe9be4a451d81a29309c933435db8fe40.patch |\
           git -C dotnet/ apply -v --directory=src/runtime || true
+        # needed to pin down to rv64gc baseline; as Ubuntu's clang moved their baseline to include V-extension among others.
+        # remove once we move past .NET 10
+        curl -sSL https://github.com/am11/dotnet/commit/e2780ca2fda22f0476eb719af027af0b676e554a.patch |\
+          git -C dotnet/ apply -v --directory=src/runtime || true
 
     - name: Build
       run: |
