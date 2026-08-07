@@ -1,5 +1,7 @@
 name: Build .NET SDK
 
+run-name: "Build .NET SDK : ${{ inputs.branch }}"
+
 on:
   workflow_dispatch:
     inputs:
