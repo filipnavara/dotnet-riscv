@@ -45,6 +45,19 @@ jobs:
 
           static string Normalize(string tag)
           {
+              // If it's a failed variant, strip the trailing .<run_id>.failed to get the original tag name
+              if (tag.EndsWith(".failed", StringComparison.OrdinalIgnoreCase))
+              {
+                  // Remove ".failed"
+                  tag = tag.Substring(0, tag.Length - 7);
+                  // Remove the trailing dot and run_id (e.g., .123456789)
+                  int lastDot = tag.LastIndexOf('.');
+                  if (lastDot > 0)
+                  {
+                      tag = tag.Substring(0, lastDot);
+                  }
+              }
+
               tag = tag.TrimStart('v');
 
               if (NuGetVersion.TryParse(tag, out var version))
