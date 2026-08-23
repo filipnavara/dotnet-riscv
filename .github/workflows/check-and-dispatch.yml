@@ -30,6 +30,15 @@ jobs:
 
           git tag > local-tags.txt
 
+      - name: Upload tag lists
+        uses: actions/upload-artifact@v4
+        with:
+          name: tags-${{ github.run_id }}
+          path: |
+            upstream-tags.txt
+            local-tags.txt
+          retention-days: 30
+
       - name: Determine builds
         id: builds
         run: |
