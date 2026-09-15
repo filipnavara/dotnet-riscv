@@ -119,7 +119,8 @@ jobs:
               if (built.Contains(normalized))
                   continue;
 
-              builds.Add(new BuildItem(raw, version.IsPrerelease ? "preview" : "release"));
+              // Brand each tag the way the official build did: previews/RCs dated, GA/servicing stabilized.
+              builds.Add(new BuildItem(raw, version.IsPrerelease ? "repodefault" : "release"));
           }
 
           string json = JsonSerializer.Serialize(builds, BuildItemContext.Default.ListBuildItem);
@@ -148,7 +149,7 @@ jobs:
             tag=$(jq -r '.tag' <<<"$build")
             branding=$(jq -r '.branding' <<<"$build")
 
-            echo "Dispatching $tag ($branding)"
+            echo "Dispatching $tag (branding: $branding)"
 
             gh workflow run build.yml \
               --ref main \
