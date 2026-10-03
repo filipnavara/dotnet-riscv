@@ -47,14 +47,14 @@ jobs:
       contents: write
 
     steps:
-    - name: Maximize build space
-      uses: AdityaGarg8/remove-unwanted-software@v4.1
+    - name: Free Disk Space (Ubuntu)
+      uses: insightsengineering/disk-space-reclaimer@v1
       with:
-        remove-dotnet: 'true'
-        remove-android: 'true'
-        remove-haskell: 'true'
-        remove-codeql: 'true'
-        remove-cached-tools: 'true'
+        android: true
+        dotnet: true
+        large-packages: false
+        swap-storage: true
+        tools-cache: true
 
     - name: Clone repository
       run: |
@@ -103,6 +103,7 @@ jobs:
         name: dotnet-sdk-${{ matrix.name }}
         path: |
           ${{ github.workspace }}/dotnet/artifacts/assets/Release/Sdk/*/dotnet-sdk-*.tar.gz
+          ${{ github.workspace }}/dotnet/artifacts/assets/Release/Private.SourceBuilt.Artifacts.*.tar.gz
 
   release:
     needs: build
@@ -122,16 +123,23 @@ jobs:
     - name: Make release (Success)
       if: needs.build.result == 'success'
       run: |
-        sdk_paths=$(find "${{ github.workspace }}/artifacts" -name 'dotnet-sdk-*.tar.gz')
+        all_paths=$(find "${{ github.workspace }}/artifacts" \( \
+          -name 'dotnet-sdk-*.tar.gz' \
+          -o -name 'Private.SourceBuilt.Artifacts.*.tar.gz' \
+        \))
 
         artifacts=""
         tag_name=""
 
-        for sdk_path in $sdk_paths; do
-          sdk_filename=$(basename "$sdk_path")
-          sdk_version=$(echo "$sdk_filename" | sed -E 's/dotnet-sdk-([^-]+(-[^-]+)*)-linux-.+\.tar\.gz/\1/')
-          artifacts="$artifacts $sdk_path"
-          tag_name="$sdk_version"
+        for file_path in $all_paths; do
+          filename=$(basename "$file_path")
+
+          if [[ "$filename" == dotnet-sdk-* ]]; then
+            sdk_version=$(echo "$filename" | sed -E 's/dotnet-sdk-([^-]+(-[^-]+)*)-linux-.+\.tar\.gz/\1/')
+            tag_name="$sdk_version"
+          fi
+
+          artifacts="$artifacts $file_path"
         done
 
         echo "tag_name: $tag_name"
